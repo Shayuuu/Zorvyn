@@ -1,103 +1,90 @@
-# Finance Dashboard UI (Job Assessment)
+# Finance Dashboard
 
-A responsive **React + Vite** finance dashboard built for a frontend take-home: clear information hierarchy, mock data, interactive transactions, simulated roles, and documented structure for reviewers.
+## Overview
 
-## Quick start (for recruiters)
+Frontend-only finance dashboard to **track activity**, **visualize spending**, and **simulate role-based UI** (viewer vs admin). Structured for scalability: **Context** for global state, **pure utils** for business rules, **feature folders** for UI.
+
+## Project structure
+
+```
+src/
+├── context/
+│   ├── dashboardContext.js  # createContext (separate file avoids Windows path case clash with AppContext.jsx)
+│   ├── AppContext.jsx       # AppProvider — persistence, mutations, toast
+│   └── useApp.js            # Consumer hook (satisfies react-refresh lint)
+├── pages/
+│   └── Dashboard.jsx      # Composes layout: header, cards, charts, table, insights, toast
+├── hooks/
+│   └── useTransactions.js # Filtered + sorted list (uses Context + calculations)
+├── data/
+│   └── mockData.js
+├── utils/
+│   ├── calculations.js    # getSummary, breakdown, filter/sort, chart points, insights bundle
+│   ├── chartPaths.js
+│   ├── csv.js
+│   └── currency.js
+├── components/
+│   ├── cards/             # SummaryCard, SummaryCards
+│   ├── charts/            # BalanceChart, CategoryChart
+│   ├── transactions/      # TransactionFilters, TransactionRow, TransactionEditRow, TransactionTable
+│   ├── insights/          # InsightsCard, InsightsSection
+│   ├── layout/            # DashboardHeader
+│   ├── guards/            # AdminOnly
+│   └── ui/                # Toast
+├── App.jsx                # AppProvider → Dashboard
+└── main.jsx
+```
+
+## Features
+
+- **Dashboard summary** — balance, income, expenses (INR / `en-IN`)
+- **Charts** — 6-month balance trend (SVG, mock series); **category breakdown syncs with table filters** (search / type / sort)
+- **Transactions** — search, type filter, sort; **Admin** add / inline edit / delete; **Viewer** read-only
+- **`AdminOnly` guard** — wraps destructive or write actions
+- **Insights** — top category, MoM % vs mock baseline, savings rate %, narrative
+- **Persistence** — `localStorage` for transactions, role, theme
+- **CSV export** — filtered rows + toast
+- **Loading + empty states**, dark / light theme, responsive CSS
+
+## Tech stack
+
+- **React 19** + **Vite**
+- **Context API** for global state (no Redux for this scope)
+- **CSS** design tokens (no Tailwind)
+- **SVG** charts (no Chart.js / Recharts)
+
+## State management (interview story)
+
+| Layer | Responsibility |
+|--------|----------------|
+| **`AppContext`** | Source of truth: `transactions`, `role`, `theme`, `filters`, persistence, `add` / `update` / `delete`, toast |
+| **`utils/calculations.js`** | Pure functions: summaries, breakdown, `filterAndSortTransactions`, `getDashboardInsights`, `getChartPoints` |
+| **`useTransactions`** | Subscribes to Context + exposes **filtered/sorted** rows for the table and CSV |
+| **`Dashboard`** | `useMemo` + **`useTransactions()`** so summary cards, category chart, and insights reflect the **same filtered/sorted set** as the table (balance trend stays mock series for demo) |
+
+**Lines you can say:**
+
+- *“Global UI state lives in Context; domain logic is isolated in `calculations` so it’s testable and reusable.”*
+- *“I used a custom hook to expose filtered transactions so tables stay dumb.”*
+- *“RBAC is simulated with `role` plus an `AdminOnly` guard and conditional columns.”*
+
+## How to run
 
 ```bash
 npm install
 npm run dev
 ```
 
-Then open the URL shown in the terminal (typically `http://localhost:5173`).
-
-**30-second demo path**
-
-1. Scan summary cards and both charts (trend + category breakdown).
-2. Use **search**, **type filter**, and **sort** on transactions.
-3. Switch **Role** to **Admin** → **Add transaction** → watch totals and charts update.
-4. **Export CSV** → confirm toast feedback; file matches the **currently filtered** rows.
-5. Toggle **Theme** and resize the window to check responsiveness.
-
-**Production build**
-
 ```bash
 npm run build
 npm run preview
+npm run lint
 ```
 
-## Deployment (optional)
+## Deployment
 
-This is a static SPA after `npm run build`. Deploy the `dist` folder to any static host, for example:
+Build outputs `dist/`. Deploy as a static site (Vercel, Netlify, etc.): build `npm run build`, publish `dist`.
 
-- [Vercel](https://vercel.com): import repo, framework preset Vite, build `npm run build`, output `dist`.
-- [Netlify](https://www.netlify.com): same build command and publish directory `dist`.
+---
 
-Add your live URL at the top of this README when you submit.
-
-## Architecture (why this structure)
-
-| Area | Choice |
-|------|--------|
-| **Components** | Small presentational sections (`DashboardHeader`, `SummaryCards`, `ChartsSection`, `TransactionsSection`, `InsightsSection`, `Toast`) for readability and reuse. |
-| **State** | `useFinanceDashboard` hook owns transactions, role, theme, filters, derived metrics, and persistence side effects. |
-| **Data** | `src/data/mockData.js` — easy to swap for an API later. |
-| **Utils** | `currency` (INR / `en-IN`) and CSV helpers keep UI components thin. |
-
-This maps directly to typical evaluation criteria: **modularity**, **separation of concerns**, and **scalability** without over-engineering.
-
-## Requirements checklist
-
-### 1) Dashboard overview
-
-- Summary: **Total Balance**, **Income**, **Expenses**
-- Time-based: **6-month balance trend** (SVG)
-- Categorical: **spending by category** (bars)
-
-### 2) Transactions
-
-- Columns: date, category, type, amount (INR), note
-- **Search**, **filter** (all / income / expense), **sort** (latest, oldest, amount)
-- Empty state when nothing matches
-
-### 3) Role-based UI (frontend only)
-
-- **Viewer**: read-only; **Add transaction** disabled with tooltip hint
-- **Admin**: can add a quick mock expense (IDs stay unique even after deletes/reloads of custom data)
-
-### 4) Insights
-
-- Top expense category
-- Month-over-month spending delta (mock baseline for “last month”)
-- Rule-based observation from income vs expenses
-
-### 5) State management
-
-- React `useState` + `useMemo` for derived lists and aggregates
-- `useEffect` for `localStorage` sync (role, theme, transactions)
-- Toast timeout cleared on unmount to avoid leaks
-
-### 6) UI / UX
-
-- Card layout, responsive grids, focus styles, table caption, `aria-live` on toast
-- `prefers-reduced-motion` reduces hover motion
-- Dark / light theme toggle
-
-### Optional enhancements included
-
-- **localStorage** persistence
-- **CSV export** of filtered rows + success toast
-- **INR** formatting throughout
-
-## Honest note
-
-No submission can guarantee a hire outcome. This README and structure are meant to make **review fast and fair**: requirements are traceable, the demo path is short, and the code is organized for a senior engineer to skim in minutes.
-
-## Scripts
-
-| Command | Purpose |
-|---------|---------|
-| `npm run dev` | Development server |
-| `npm run build` | Production bundle |
-| `npm run preview` | Preview production build locally |
-| `npm run lint` | ESLint |
+**Reviewer demo:** **Role → Admin** → Add / Edit / Delete → Export CSV; toggle **Theme**; exercise **search + filters + sort**.

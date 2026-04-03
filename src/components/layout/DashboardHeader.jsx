@@ -1,9 +1,15 @@
-export function DashboardHeader({ today, recordCount, savingsRate, theme, setTheme, role, setRole }) {
+import { useApp } from '../../context/useApp'
+
+export function DashboardHeader({ today, recordCount, visibleCount, savingsRate }) {
+  const { theme, setTheme, role, setRole } = useApp()
+
   return (
     <header className="topbar">
       <div className="topbar-intro">
-        <div className="brand-mark-wrap" aria-hidden="true">
-          <span className="brand-mark" />
+        <div className="brand-mark-wrap" aria-label="Zorvyn">
+          <span className="brand-mark" aria-hidden="true">
+            Z
+          </span>
         </div>
         <div className="topbar-copy">
           <p className="eyebrow">Finance Dashboard UI</p>
@@ -12,6 +18,7 @@ export function DashboardHeader({ today, recordCount, savingsRate, theme, setThe
           <div className="meta-row" aria-label="Dashboard summary chips">
             <span className="meta-chip">Updated: {today}</span>
             <span className="meta-chip">Records: {recordCount}</span>
+            <span className="meta-chip">Visible: {visibleCount}</span>
             <span className="meta-chip">Savings rate: {savingsRate}%</span>
           </div>
         </div>
