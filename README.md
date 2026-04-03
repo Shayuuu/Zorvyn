@@ -62,12 +62,6 @@ src/
 | **`useTransactions`** | Subscribes to Context + exposes **filtered/sorted** rows for the table and CSV |
 | **`Dashboard`** | `useMemo` + **`useTransactions()`** so summary cards, category chart, and insights reflect the **same filtered/sorted set** as the table (balance trend stays mock series for demo) |
 
-**Lines you can say:**
-
-- *“Global UI state lives in Context; domain logic is isolated in `calculations` so it’s testable and reusable.”*
-- *“I used a custom hook to expose filtered transactions so tables stay dumb.”*
-- *“RBAC is simulated with `role` plus an `AdminOnly` guard and conditional columns.”*
-
 ## How to run
 
 ```bash
